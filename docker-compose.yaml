@@ -11,7 +11,7 @@ services:
     volumes:
       - db_data:/var/lib/mysql
     environment:
-      MYSQL_ROOT_PASSWORD: rootpassword
+      MYSQL_ROOT_PASSWORD: password
       MYSQL_DATABASE: fincontrol
       MYSQL_USER: user
       MYSQL_PASSWORD: password
