@@ -15,6 +15,7 @@ type Transaction struct {
 	Type        string
 	accountID   uint
 	PaymentDate time.Time
-	CreatedAt   time.Time
-	UpdatedAt   time.Time
+	CreatedAt   time.Time      `gorm:"default:CURRENT_TIMESTAMP(3)"`
+	UpdatedAt   time.Time      `gorm:"default:CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3)"`
+	DeletedAt   gorm.DeletedAt `gorm:"index;"`
 }

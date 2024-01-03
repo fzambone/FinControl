@@ -1,15 +1,33 @@
+FROM golang:1.21.3 as dev
+
+# Install Air for live reloading
+RUN go install github.com/cosmtrek/air@latest
+
+# Set Working directory
+WORKDIR /app
+
+# Download all dependencies
+COPY go.mod go.sum ./
+RUN go mod download -x
+
+# Copy source from the Current directory to the Working directory inside the container
+COPY . .
+
+# Set Air as the entry point for live reloading
+ENTRYPOINT ["air", "-c", ".air.toml"]
+
+# Production stage for a smaller, final image
 FROM golang:1.21.3 as builder
 
 # Set Working directory
 WORKDIR /app
 
-# Copy source from the Current directory to the Working directory inside the container
-COPY . .
-
 # Download all dependencies
-COPY go.mod .
-COPY go.sum .
-RUN go mod download
+COPY go.mod go.sum ./
+RUN go mod download -x
+
+# Copy source code
+COPY . .
 
 # Build the Go app
 RUN CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -o fincontrol-api .

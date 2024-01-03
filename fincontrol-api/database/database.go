@@ -1,24 +1,47 @@
 package database
 
 import (
+	"fmt"
 	"github.com/fzambone/FinControl/fincontrol-api/models"
-	"github.com/gofiber/fiber/v2/log"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
+	"log"
 	"os"
 )
 
 var DB *gorm.DB
 
 func Connect() {
-	dsn := os.Getenv("DSN")
-	database, err := gorm.Open(mysql.Open(dsn), &gorm.Config{})
+	var err error
+
+	dsn := getDSN()
+	DB, err = gorm.Open(mysql.Open(dsn), &gorm.Config{})
 
 	if err != nil {
-		log.Fatal("Failed to connect to database: ", err)
+		log.Fatalf("Failed to connect to database: %v", err)
 	}
 
-	database.AutoMigrate(&models.User{}, &models.Transaction{}, &models.Category{})
+	log.Println("Database Connected")
+}
 
-	DB = database
+func getDSN() string {
+	dbUser := os.Getenv("MYSQL_USER")
+	dbPass := os.Getenv("MYSQL_PASSWORD")
+	dbName := os.Getenv("MYSQL_DATABASE")
+	dbHost := os.Getenv("DB_HOST")
+	dbPort := os.Getenv("DB_PORT")
+
+	return fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?charset=utf8mb4&parseTime=True&loc=Local", dbUser, dbPass, dbHost, dbPort, dbName)
+}
+
+func SetupDatabase() {
+	err := DB.AutoMigrate(
+		&models.Category{},
+		&models.Transaction{},
+	)
+	if err != nil {
+		log.Fatalf("Failed to migrate database: %v", err)
+	}
+
+	log.Println("Database migration completed")
 }
