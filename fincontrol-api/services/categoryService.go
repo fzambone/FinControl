@@ -12,7 +12,7 @@ type CategoryService interface {
 	UpdateCategory(category *models.Category) error
 	DeleteCategory(id uint) error
 	GetAllDeletedCategories() ([]models.Category, error)
-	RestoreCategory(id uint) (models.Category, error)
+	RestoreCategory(id uint) error
 }
 
 type categoryService struct {
@@ -47,6 +47,6 @@ func (s *categoryService) GetAllDeletedCategories() ([]models.Category, error) {
 	return s.repo.GetAllDeletedCategories()
 }
 
-func (s *categoryService) RestoreCategory(id uint) (models.Category, error) {
+func (s *categoryService) RestoreCategory(id uint) error {
 	return s.repo.RestoreCategory(id)
 }

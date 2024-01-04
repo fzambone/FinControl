@@ -59,7 +59,7 @@ func (c *CategoryController) GetCategoryByID(ctx *fiber.Ctx) error {
 func (c *CategoryController) UpdateCategory(ctx *fiber.Ctx) error {
 	id, err := ctx.ParamsInt("id")
 	if err != nil {
-		return ctx.Status(fiber.StatusBadRequest).SendString(err.Error())
+		return ctx.Status(fiber.StatusBadRequest).SendString("Invalid ID")
 	}
 
 	category := new(models.Category)
@@ -78,14 +78,14 @@ func (c *CategoryController) UpdateCategory(ctx *fiber.Ctx) error {
 func (c *CategoryController) DeleteCategory(ctx *fiber.Ctx) error {
 	id, err := ctx.ParamsInt("id")
 	if err != nil {
-		return ctx.Status(fiber.StatusBadRequest).SendString(err.Error())
+		return ctx.Status(fiber.StatusBadRequest).SendString("Invalid ID")
 	}
 
 	if err := c.service.DeleteCategory(uint(id)); err != nil {
 		return ctx.Status(fiber.StatusInternalServerError).SendString(err.Error())
 	}
 
-	return ctx.SendStatus(fiber.StatusNoContent)
+	return ctx.Status(fiber.StatusOK).SendString("Category deleted successfully")
 }
 
 func (c *CategoryController) GetAllDeletedCategories(ctx *fiber.Ctx) error {
@@ -103,7 +103,7 @@ func (c *CategoryController) RestoreCategory(ctx *fiber.Ctx) error {
 		return ctx.Status(fiber.StatusBadRequest).SendString("Invalid ID")
 	}
 
-	category, err := c.service.RestoreCategory(uint(id))
+	err = c.service.RestoreCategory(uint(id))
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return ctx.Status(fiber.StatusNotFound).SendString("Deleted category not found")
@@ -111,5 +111,5 @@ func (c *CategoryController) RestoreCategory(ctx *fiber.Ctx) error {
 		return ctx.Status(fiber.StatusInternalServerError).SendString(err.Error())
 	}
 
-	return ctx.Status(fiber.StatusOK).JSON(category)
+	return ctx.Status(fiber.StatusOK).SendString("Category restored successfully")
 }

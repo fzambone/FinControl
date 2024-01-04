@@ -7,13 +7,12 @@ import (
 
 type Transaction struct {
 	gorm.Model
-	UserID      uint
-	CategoryID  uint
+	CategoryID  uint     `gorm:"index;not null"`
+	Category    Category `gorm:"foreignKey:CategoryID"`
 	Amount      float64
 	Name        string
 	Description string
 	Type        string
-	accountID   uint
 	PaymentDate time.Time
 	CreatedAt   time.Time      `gorm:"default:CURRENT_TIMESTAMP(3)"`
 	UpdatedAt   time.Time      `gorm:"default:CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3)"`

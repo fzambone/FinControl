@@ -2,9 +2,6 @@ services:
   fincontrol-api:
     build:
       context: ./fincontrol-api
-      target: dev
-    volumes:
-      - ./fincontrol-api:/app
     ports:
       - "8080:8080"
     depends_on:

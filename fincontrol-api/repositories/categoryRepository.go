@@ -12,7 +12,7 @@ type CategoryRepository interface {
 	UpdateCategory(category *models.Category) error
 	DeleteCategory(id uint) error
 	GetAllDeletedCategories() ([]models.Category, error)
-	RestoreCategory(id uint) (models.Category, error)
+	RestoreCategory(id uint) error
 }
 
 type categoryRepository struct{}
@@ -39,7 +39,6 @@ func (repo *categoryRepository) GetCategoryByID(id uint) (models.Category, error
 }
 
 func (repo *categoryRepository) UpdateCategory(category *models.Category) error {
-	//result := database.DB.Save(&category)
 	result := database.DB.Updates(&category)
 	return result.Error
 }
@@ -55,17 +54,9 @@ func (repo *categoryRepository) GetAllDeletedCategories() ([]models.Category, er
 	return categories, result.Error
 }
 
-func (repo *categoryRepository) RestoreCategory(id uint) (models.Category, error) {
+func (repo *categoryRepository) RestoreCategory(id uint) error {
 	var category models.Category
-
 	result := database.DB.Unscoped().Where("id = ? AND deleted_at IS NOT NULL", id).First(&category)
-	if result.Error != nil {
-		return models.Category{}, result.Error
-	}
 	result = database.DB.Model(&category).Unscoped().Update("deleted_at", nil)
-	if result.Error != nil {
-		return models.Category{}, result.Error
-	}
-
-	return category, nil
+	return result.Error
 }

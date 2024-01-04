@@ -9,20 +9,6 @@ import (
 )
 
 func main() {
-	//dbUser := os.Getenv("MYSQL_USER")
-	//dbPass := os.Getenv("MYSQL_PASSWORD")
-	//dbName := os.Getenv("MYSQL_DATABASE")
-	//dbHost := os.Getenv("DB_HOST")
-	//dbPort := os.Getenv("DB_PORT")
-
-	//dsn := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?charset=utf8mb4&parseTime=True&loc=Local", dbUser, dbPass, dbHost, dbPort, dbName)
-
-	//_, err := gorm.Open(mysql.Open(dsn), &gorm.Config{})
-	//if err != nil {
-	//	panic("Failed to connect to database")
-	//}
-
-	//fmt.Println("Connected to Database!")
 
 	app := fiber.New()
 
@@ -33,17 +19,29 @@ func main() {
 	categoryService := services.NewCategoryService(categoryRepo)
 	categoryController := controllers.NewCategoryController(categoryService)
 
-	setupRoutes(app, categoryController)
+	transactionRepo := repositories.NewTransactionRepository()
+	transactionService := services.NewTransactionService(transactionRepo)
+	transactionController := controllers.NewTransactionController(transactionService)
+
+	setupRoutes(app, categoryController, transactionController)
 
 	app.Listen(":8080")
 }
 
-func setupRoutes(app *fiber.App, categoryController *controllers.CategoryController) {
+func setupRoutes(app *fiber.App, categoryController *controllers.CategoryController, transactionController *controllers.TransactionController) {
 	app.Post("/categories", categoryController.CreateCategory)
 	app.Get("/categories", categoryController.GetAllCategories)
+	app.Get("/categories/deleted", categoryController.GetAllDeletedCategories)
 	app.Get("/categories/:id", categoryController.GetCategoryByID)
 	app.Put("/categories/:id", categoryController.UpdateCategory)
 	app.Delete("/categories/:id", categoryController.DeleteCategory)
-	app.Get("/categoriesDeleted", categoryController.GetAllDeletedCategories)
-	app.Put("/restoreCategory/:id", categoryController.RestoreCategory)
+	app.Patch("/categories/:id/restore", categoryController.RestoreCategory)
+
+	app.Post("/transactions", transactionController.CreateTransaction)
+	app.Get("/transactions", transactionController.GetAllTransactions)
+	app.Get("/transactions/deleted", transactionController.GetAllDeletedTransactions)
+	app.Get("/transactions/:id", transactionController.GetTransactionByID)
+	app.Put("/transactions/:id", transactionController.UpdateTransaction)
+	app.Delete("/transactions/:id", transactionController.DeleteTransaction)
+	app.Patch("/transactions/:id/restore", transactionController.RestoreTransaction)
 }
