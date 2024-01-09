@@ -1,9 +1,10 @@
-import { createTheme } from '@mui/material/styles';
+import { createTheme, Theme } from '@mui/material/styles';
 
 const theme = createTheme({
     palette: {
         primary: {
             main: '#4caf50',
+            dark: '#388e3c',
         },
         secondary: {
             main: '#ff9800',
@@ -21,9 +22,9 @@ const theme = createTheme({
             styleOverrides: {
                 root: {
                     color: 'white',
-                    backgroundColor: 'primary.main',
+                    backgroundColor: '#4caf50',
                     '&:hover': {
-                        backgroundColor: 'primary.dark',
+                        backgroundColor: '#388e3c',
                     },
                 },
             },
