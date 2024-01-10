@@ -14,7 +14,26 @@ type Transaction struct {
 	Description string
 	Type        string
 	PaymentDate time.Time
-	//CreatedAt   time.Time      `gorm:"default:CURRENT_TIMESTAMP(3)"`
-	//UpdatedAt   time.Time      `gorm:"default:CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3)"`
-	//DeletedAt   gorm.DeletedAt `gorm:"index;"`
+}
+
+type TransactionResponse struct {
+	ID          uint      `json:"ID"`
+	CategoryID  uint      `json:"CategoryID"`
+	Amount      float64   `json:"Amount"`
+	Name        string    `json:"Name"`
+	Description string    `json:"Description"`
+	Type        string    `json:"Type"`
+	PaymentDate time.Time `json:"PaymentDate"`
+}
+
+func ToTransactionResponse(t Transaction) TransactionResponse {
+	return TransactionResponse{
+		ID:          t.ID,
+		CategoryID:  t.CategoryID,
+		Amount:      t.Amount,
+		Name:        t.Name,
+		Description: t.Description,
+		Type:        t.Type,
+		PaymentDate: t.PaymentDate,
+	}
 }

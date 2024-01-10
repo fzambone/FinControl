@@ -16,12 +16,16 @@ import API from '../services/api';
 import {Category, Transaction} from '../types';
 import {formatDate, toISODateString} from "@/src/utils/dateUtils";
 import TransactionEditModal from "@/src/components/TransactionEditModal";
+import DeleteConfirmationDialog from "@/src/components/DeleteConfirmationDialog";
+import formatCurrency from "@/src/utils/currencyUtils"
 
 const Transactions: React.FC = () => {
     const [transactions, setTransactions] = useState<Transaction[]>([]);
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [editingTransaction, setEditingTransaction] = useState<Transaction | null>(null);
     const [categories, setCategories] = useState<Category[]>([]);
+    const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+    const [deleteTransactionId, setDeleteTransactionId] = useState<number | null>(null);
 
     useEffect(() => {
         const fetchCategories = async () => {
@@ -70,9 +74,6 @@ const Transactions: React.FC = () => {
             PaymentDate: toISODateString(updatedTransaction.PaymentDate)
         }
 
-        delete payload.Category;
-        console.log('Saving transaction:', payload);
-
         if (editingTransaction) {
             API.put(`/transactions/${updatedTransaction.ID}`, payload)
                 .then(response => {
@@ -100,8 +101,29 @@ const Transactions: React.FC = () => {
 
     const getCategoryNameById = (categoryId: number) => {
         const category = categories.find(cat => cat.ID === categoryId);
-        return category ? category.name : 'Unknown';
+        return category ? category.Name : 'Unknown';
     };
+
+    const handleDeleteTransaction = (transactionID: number) => {
+        API.delete(`/transactions/${transactionID}`)
+            .then(() => {
+                const updatedTransactions = transactions.filter(t => t.ID !== transactionID);
+                setTransactions(updatedTransactions);
+                closeDeleteDialog();
+            })
+            .catch(error => {
+                console.error("Error deleting transaction:", error);
+            });
+    };
+
+    const openDeleteDialog = (transactionId: number) => {
+        setDeleteTransactionId(transactionId);
+        setIsDeleteDialogOpen(true);
+    }
+
+    const closeDeleteDialog = () => {
+        setIsDeleteDialogOpen(false);
+    }
 
     return (
         <>
@@ -114,12 +136,12 @@ const Transactions: React.FC = () => {
                 <Table aria-label="simple table">
                     <TableHead>
                         <TableRow>
-                            <TableCell>Name</TableCell>
-                            <TableCell align="right">Category</TableCell>
-                            <TableCell align="right">Type</TableCell>
-                            <TableCell align="right">Amount (R$)</TableCell>
-                            <TableCell align="right">Date</TableCell>
-                            <TableCell align="right">Actions</TableCell>
+                            <TableCell sx={{ fontWeight: 'bold'}}>Name</TableCell>
+                            <TableCell sx={{ fontWeight: 'bold'}} align="right">Category</TableCell>
+                            <TableCell sx={{ fontWeight: 'bold'}} align="right">Type</TableCell>
+                            <TableCell sx={{ fontWeight: 'bold'}} align="right">Amount (R$)</TableCell>
+                            <TableCell sx={{ fontWeight: 'bold'}} align="right">Date</TableCell>
+                            <TableCell sx={{ fontWeight: 'bold'}} align="right">Actions</TableCell>
                         </TableRow>
                     </TableHead>
                     <TableBody>
@@ -128,20 +150,38 @@ const Transactions: React.FC = () => {
                                 <TableCell component={"th"} scope={"row"}>{transaction.Name}</TableCell>
                                 <TableCell align={"right"}>{getCategoryNameById(transaction.CategoryID)}</TableCell>
                                 <TableCell align={"right"}>{transaction.Type}</TableCell>
-                                <TableCell align={"right"}>{transaction.Amount}</TableCell>
+                                <TableCell align={"right"}>{formatCurrency(transaction.Amount)}</TableCell>
                                 <TableCell align={"right"}>{formatDate(transaction.PaymentDate)}</TableCell>
                                 <TableCell align={"right"}>
-                                    <IconButton aria-label={"edit"} color={"primary"}
-                                                onClick={() => handleOpenModal(transaction)}><EditIcon/></IconButton>
-                                    <IconButton aria-label={"delete"} color={"secondary"}><DeleteIcon/></IconButton>
+                                    <IconButton
+                                        aria-label={"edit"}
+                                        color={"primary"}
+                                        onClick={() => handleOpenModal(transaction)}
+                                    ><EditIcon/></IconButton>
+                                    <IconButton
+                                        aria-label={"delete"}
+                                        color={"secondary"}
+                                        onClick={() => openDeleteDialog(transaction.ID)}
+                                    ><DeleteIcon/>
+                                    </IconButton>
                                 </TableCell>
                             </TableRow>
                         ))}
                     </TableBody>
                 </Table>
-                <TransactionEditModal open={isModalOpen} onClose={handleCloseModal} transaction={editingTransaction}
-                                      onSave={handleSaveTransaction} categories={categories}/>
             </TableContainer>
+            <TransactionEditModal open={isModalOpen} onClose={handleCloseModal} transaction={editingTransaction}
+                                  onSave={handleSaveTransaction} categories={categories}/>
+            <DeleteConfirmationDialog
+                open={isDeleteDialogOpen}
+                onClose={closeDeleteDialog}
+                onConfirm={() => {
+                    if (deleteTransactionId !== null) {
+                        handleDeleteTransaction(deleteTransactionId);
+                    }
+                    closeDeleteDialog();
+                }}
+            ></DeleteConfirmationDialog>
         </>
 
     );

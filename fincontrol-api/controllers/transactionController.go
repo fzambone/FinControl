@@ -63,7 +63,13 @@ func (c *TransactionController) GetAllTransactions(ctx *fiber.Ctx) error {
 		return ctx.Status(fiber.StatusInternalServerError).SendString(err.Error())
 	}
 
-	return ctx.Status(fiber.StatusOK).JSON(transactions)
+	var transactionResponses []models.TransactionResponse
+	for _, t := range transactions {
+		transactionResponse := models.ToTransactionResponse(t)
+		transactionResponses = append(transactionResponses, transactionResponse)
+	}
+
+	return ctx.Status(fiber.StatusOK).JSON(transactionResponses)
 }
 
 func (c *TransactionController) GetTransactionByID(ctx *fiber.Ctx) error {

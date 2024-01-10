@@ -108,7 +108,7 @@ const TransactionEditModal: React.FC<TransactionEditModalProps> = ({
                 >
                     {categories.map(category => (
                         <MenuItem key={category.ID} value={category.ID}>
-                            {category.name}
+                            {category.Name}
                         </MenuItem>
                     ))}
                 </Select>

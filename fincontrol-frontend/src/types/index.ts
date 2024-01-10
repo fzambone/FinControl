@@ -1,6 +1,6 @@
 export interface Category {
     ID: number;
-    name: string;
+    Name: string;
 }
 
 export interface Transaction {

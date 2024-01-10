@@ -30,7 +30,8 @@ func (repo *transactionRepository) GetAllTransactions(startDate, endDate *time.T
 	if startDate != nil && endDate != nil {
 		query = query.Where("payment_date >= ? AND payment_date <= ?", startDate, endDate)
 	}
-	result := query.Preload("Category").Find(&transactions)
+	//result := query.Preload("Category").Find(&transactions)
+	result := query.Find(&transactions)
 	return transactions, result.Error
 }
 
