@@ -1,23 +1,13 @@
 import React, {useEffect, useState} from 'react';
-import {
-    Button,
-    IconButton,
-    Paper,
-    Table,
-    TableBody,
-    TableCell,
-    TableContainer,
-    TableHead,
-    TableRow
-} from "@mui/material";
-import EditIcon from '@mui/icons-material/Edit';
-import DeleteIcon from '@mui/icons-material/Delete';
+import { Button } from "@mui/material";
 import API from '../services/api';
-import {Category, Transaction} from '../types';
+import {Category, ColumnDefinition, Transaction} from '../types';
 import {formatDate, toISODateString} from "@/src/utils/dateUtils";
-import TransactionEditModal from "@/src/components/TransactionEditModal";
 import DeleteConfirmationDialog from "@/src/components/DeleteConfirmationDialog";
-import formatCurrency from "@/src/utils/currencyUtils"
+import {GenericList} from "@/src/components/GenericList";
+import {GenericEditModal} from "@/src/components/GenericEditModal";
+import TransactionForm from "@/src/components/TransactionForm";
+import formatCurrency from "@/src/utils/currencyUtils";
 
 const Transactions: React.FC = () => {
     const [transactions, setTransactions] = useState<Transaction[]>([]);
@@ -26,6 +16,14 @@ const Transactions: React.FC = () => {
     const [categories, setCategories] = useState<Category[]>([]);
     const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
     const [deleteTransactionId, setDeleteTransactionId] = useState<number | null>(null);
+
+    const transactionColumns: ColumnDefinition<Transaction>[] = [
+        { title: 'Name', render: (transaction) => transaction.Name },
+        { title: 'Category', render: (transaction) => getCategoryNameById(transaction.CategoryID) },
+        { title: 'Type', render: (transaction) => transaction.Type },
+        { title: 'Amount (R$)', render: (transaction) => formatCurrency(transaction.Amount) },
+        { title: 'Date', render: (transaction) => formatDate(transaction.PaymentDate) },
+    ];
 
     useEffect(() => {
         const fetchCategories = async () => {
@@ -36,7 +34,6 @@ const Transactions: React.FC = () => {
                 console.error('Error fetching categories:', error);
             }
         };
-
         const fetchTransactions = async () => {
             try {
                 const response = await API.get<Transaction[]>('/transactions');
@@ -52,22 +49,18 @@ const Transactions: React.FC = () => {
         fetchCategories();
         fetchTransactions();
     }, []);
-
     const handleOpenModal = (transaction: Transaction) => {
         setEditingTransaction(transaction);
         setIsModalOpen(true);
     };
-
     const handleOpenModalForNew = () => {
         setEditingTransaction(null);
         setIsModalOpen(true);
     }
-
     const handleCloseModal = () => {
         setIsModalOpen(false);
         setEditingTransaction(null);
     };
-
     const handleSaveTransaction = (updatedTransaction: Transaction) => {
         const payload = {
             ...updatedTransaction,
@@ -94,16 +87,12 @@ const Transactions: React.FC = () => {
                     console.error("Error creating transaction:", error);
                 });
         }
-
-
         handleCloseModal();
     };
-
     const getCategoryNameById = (categoryId: number) => {
         const category = categories.find(cat => cat.ID === categoryId);
         return category ? category.Name : 'Unknown';
     };
-
     const handleDeleteTransaction = (transactionID: number) => {
         API.delete(`/transactions/${transactionID}`)
             .then(() => {
@@ -115,12 +104,10 @@ const Transactions: React.FC = () => {
                 console.error("Error deleting transaction:", error);
             });
     };
-
     const openDeleteDialog = (transactionId: number) => {
         setDeleteTransactionId(transactionId);
         setIsDeleteDialogOpen(true);
     }
-
     const closeDeleteDialog = () => {
         setIsDeleteDialogOpen(false);
     }
@@ -132,46 +119,15 @@ const Transactions: React.FC = () => {
                     Add New Transaction
                 </Button>
             </div>
-            <TableContainer component={Paper}>
-                <Table aria-label="simple table">
-                    <TableHead>
-                        <TableRow>
-                            <TableCell sx={{ fontWeight: 'bold'}}>Name</TableCell>
-                            <TableCell sx={{ fontWeight: 'bold'}} align="right">Category</TableCell>
-                            <TableCell sx={{ fontWeight: 'bold'}} align="right">Type</TableCell>
-                            <TableCell sx={{ fontWeight: 'bold'}} align="right">Amount (R$)</TableCell>
-                            <TableCell sx={{ fontWeight: 'bold'}} align="right">Date</TableCell>
-                            <TableCell sx={{ fontWeight: 'bold'}} align="right">Actions</TableCell>
-                        </TableRow>
-                    </TableHead>
-                    <TableBody>
-                        {transactions.map((transaction) => (
-                            <TableRow key={transaction.ID}>
-                                <TableCell component={"th"} scope={"row"}>{transaction.Name}</TableCell>
-                                <TableCell align={"right"}>{getCategoryNameById(transaction.CategoryID)}</TableCell>
-                                <TableCell align={"right"}>{transaction.Type}</TableCell>
-                                <TableCell align={"right"}>{formatCurrency(transaction.Amount)}</TableCell>
-                                <TableCell align={"right"}>{formatDate(transaction.PaymentDate)}</TableCell>
-                                <TableCell align={"right"}>
-                                    <IconButton
-                                        aria-label={"edit"}
-                                        color={"primary"}
-                                        onClick={() => handleOpenModal(transaction)}
-                                    ><EditIcon/></IconButton>
-                                    <IconButton
-                                        aria-label={"delete"}
-                                        color={"secondary"}
-                                        onClick={() => openDeleteDialog(transaction.ID)}
-                                    ><DeleteIcon/>
-                                    </IconButton>
-                                </TableCell>
-                            </TableRow>
-                        ))}
-                    </TableBody>
-                </Table>
-            </TableContainer>
-            <TransactionEditModal open={isModalOpen} onClose={handleCloseModal} transaction={editingTransaction}
-                                  onSave={handleSaveTransaction} categories={categories}/>
+            <GenericList
+                data={transactions}
+                columns={transactionColumns}
+                onEdit={handleOpenModal}
+                onDelete={(transactionId) => openDeleteDialog(transactionId)}
+            />
+            <GenericEditModal open={isModalOpen} onClose={handleCloseModal}>
+                <TransactionForm transaction={editingTransaction} onSave={handleSaveTransaction} categories={categories} />
+            </GenericEditModal>
             <DeleteConfirmationDialog
                 open={isDeleteDialogOpen}
                 onClose={closeDeleteDialog}
@@ -183,7 +139,6 @@ const Transactions: React.FC = () => {
                 }}
             ></DeleteConfirmationDialog>
         </>
-
     );
 };
 
