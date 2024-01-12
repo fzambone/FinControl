@@ -53,7 +53,8 @@ const Categories: React.FC = () => {
                 const updatedCategories = categories.map(cat => cat.ID === updatedCategory.ID ? response.data : cat);
                 setCategories(updatedCategories)
             } else {
-                const response = await API.post('/categories', updatedCategory);
+                const { ID, ...categoryData } = updatedCategory;
+                const response = await API.post('/categories', categoryData);
                 setCategories([...categories, response.data]);
             }
             handleCloseModal();

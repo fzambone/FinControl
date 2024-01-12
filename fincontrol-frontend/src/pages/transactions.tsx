@@ -112,6 +112,16 @@ const Transactions: React.FC = () => {
         setIsDeleteDialogOpen(false);
     }
 
+    const handleAddCategory = async (newCategory: Category) => {
+        try {
+            const { ID, ...categoryData } = newCategory;
+            const response = await API.post('/categories', categoryData);
+            setCategories(prevCategories => [...prevCategories, response.data]);
+        } catch (error) {
+            console.error("Error saving new category:", error)
+        }
+    }
+
     return (
         <>
             <div style={{display: 'flex', justifyContent: 'flex-end', margin: '10px'}}>
@@ -126,7 +136,7 @@ const Transactions: React.FC = () => {
                 onDelete={(transactionId) => openDeleteDialog(transactionId)}
             />
             <GenericEditModal open={isModalOpen} onClose={handleCloseModal}>
-                <TransactionForm transaction={editingTransaction} onSave={handleSaveTransaction} categories={categories} />
+                <TransactionForm transaction={editingTransaction} onSave={handleSaveTransaction} categories={categories} onAddCategory={handleAddCategory} />
             </GenericEditModal>
             <DeleteConfirmationDialog
                 open={isDeleteDialogOpen}
