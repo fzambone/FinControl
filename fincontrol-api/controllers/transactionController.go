@@ -43,6 +43,9 @@ func (c *TransactionController) GetAllTransactions(ctx *fiber.Ctx) error {
 		err                error
 	)
 
+	sortParam := ctx.Query("sort", "date_desc")
+	categoryFilter := ctx.Query("category")
+
 	if start := ctx.Query("start_date"); start != "" {
 		sd, err := time.Parse("2006-01-02", start)
 		if err != nil {
@@ -58,7 +61,7 @@ func (c *TransactionController) GetAllTransactions(ctx *fiber.Ctx) error {
 		endDate = &ed
 	}
 
-	transactions, err := c.service.GetAllTransactions(startDate, endDate)
+	transactions, err := c.service.GetAllTransactions(startDate, endDate, sortParam, categoryFilter)
 	if err != nil {
 		return ctx.Status(fiber.StatusInternalServerError).SendString(err.Error())
 	}

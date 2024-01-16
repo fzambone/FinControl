@@ -8,7 +8,7 @@ import (
 
 type TransactionService interface {
 	CreateTransaction(transaction *models.Transaction) error
-	GetAllTransactions(startDate, endDate *time.Time) ([]models.Transaction, error)
+	GetAllTransactions(startDate, endDate *time.Time, sortParam, categoryFilter string) ([]models.Transaction, error)
 	GetTransactionByID(id uint) (models.Transaction, error)
 	UpdateTransaction(transaction *models.Transaction) error
 	DeleteTransaction(id uint) error
@@ -28,8 +28,8 @@ func (s *transactionService) CreateTransaction(transaction *models.Transaction) 
 	return s.repo.CreateTransaction(transaction)
 }
 
-func (s *transactionService) GetAllTransactions(startDate, endDate *time.Time) ([]models.Transaction, error) {
-	return s.repo.GetAllTransactions(startDate, endDate)
+func (s *transactionService) GetAllTransactions(startDate, endDate *time.Time, sortParam, categoryFilter string) ([]models.Transaction, error) {
+	return s.repo.GetAllTransactions(startDate, endDate, sortParam, categoryFilter)
 }
 
 func (s *transactionService) GetTransactionByID(id uint) (models.Transaction, error) {
