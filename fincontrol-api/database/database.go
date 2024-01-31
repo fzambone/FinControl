@@ -38,6 +38,7 @@ func SetupDatabase() {
 	err := DB.AutoMigrate(
 		&models.Category{},
 		&models.Transaction{},
+		&models.PaymentMethod{},
 	)
 	if err != nil {
 		log.Fatalf("Failed to migrate database: %v", err)

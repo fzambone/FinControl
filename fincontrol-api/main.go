@@ -22,6 +22,10 @@ func main() {
 	database.Connect()
 	database.SetupDatabase()
 
+	paymentMethodRepo := repositories.NewPaymentMethodRepository()
+	paymentMethodService := services.NewPaymentMethodService(paymentMethodRepo)
+	paymentMethodController := controllers.NewPaymentMethodController(paymentMethodService)
+
 	categoryRepo := repositories.NewCategoryRepository()
 	categoryService := services.NewCategoryService(categoryRepo)
 	categoryController := controllers.NewCategoryController(categoryService)
@@ -30,12 +34,20 @@ func main() {
 	transactionService := services.NewTransactionService(transactionRepo)
 	transactionController := controllers.NewTransactionController(transactionService)
 
-	setupRoutes(app, categoryController, transactionController)
+	setupRoutes(app, categoryController, transactionController, paymentMethodController)
 
 	app.Listen(":8080")
 }
 
-func setupRoutes(app *fiber.App, categoryController *controllers.CategoryController, transactionController *controllers.TransactionController) {
+func setupRoutes(app *fiber.App, categoryController *controllers.CategoryController, transactionController *controllers.TransactionController, paymentMethodController *controllers.PaymentMethodController) {
+	app.Post("/paymentMethods", paymentMethodController.CreatePaymentMethod)
+	app.Get("/paymentMethods", paymentMethodController.GetAllPaymentMethods)
+	app.Get("/paymentMethods/deleted", paymentMethodController.GetAllDeletedPaymentMethods)
+	app.Get("/paymentMethods/:id", paymentMethodController.GetPaymentMethodByID)
+	app.Put("/paymentMethods/:id", paymentMethodController.UpdatePaymentMethod)
+	app.Delete("/paymentMethods/:id", paymentMethodController.DeletePaymentMethod)
+	app.Patch("/paymentMethods/:id/restore", paymentMethodController.RestorePaymentMethod)
+
 	app.Post("/categories", categoryController.CreateCategory)
 	app.Get("/categories", categoryController.GetAllCategories)
 	app.Get("/categories/deleted", categoryController.GetAllDeletedCategories)

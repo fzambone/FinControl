@@ -12,13 +12,15 @@ export interface Transaction {
 }
 export interface ColumnDefinition<T> {
     title: string;
+    field: string;
+    sortable?: boolean;
     render: (item: T) => React.ReactNode;
 }
 export interface GenericListProps<T> {
     data: T[];
     columns: ColumnDefinition<T>[];
     onEdit: (item: T) => void;
-    onDelete: (itemId: number) => void;
+    onDelete: (id: number) => void;
 }
 
 export interface GenericEditModalProps {

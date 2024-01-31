@@ -18,11 +18,11 @@ const Transactions: React.FC = () => {
     const [deleteTransactionId, setDeleteTransactionId] = useState<number | null>(null);
 
     const transactionColumns: ColumnDefinition<Transaction>[] = [
-        { title: 'Name', render: (transaction) => transaction.Name },
-        { title: 'Category', render: (transaction) => getCategoryNameById(transaction.CategoryID) },
-        { title: 'Type', render: (transaction) => transaction.Type },
-        { title: 'Amount (R$)', render: (transaction) => formatCurrency(transaction.Amount) },
-        { title: 'Date', render: (transaction) => formatDate(transaction.PaymentDate) },
+        { title: 'Name', field: 'Name', sortable: true, render: (transaction) => transaction.Name },
+        { title: 'Category', field: 'Category', render: (transaction) => getCategoryNameById(transaction.CategoryID) },
+        { title: 'Type', field: 'Type', sortable: true, render: (transaction) => transaction.Type },
+        { title: 'Amount (R$)', field: 'Amount', render: (transaction) => formatCurrency(transaction.Amount) },
+        { title: 'Date', field: 'PaymentDate', sortable: true, render: (transaction) => formatDate(transaction.PaymentDate) },
     ];
 
     useEffect(() => {
