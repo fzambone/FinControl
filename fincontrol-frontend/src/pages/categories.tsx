@@ -28,7 +28,7 @@ const Categories: React.FC = () => {
     }, []);
 
     const categoryColumns: ColumnDefinition<Category>[] = [
-        { title: 'Name', render: (category) => category.Name },
+        { title: 'Name', field: 'Name', render: (category) => category.Name },
     ];
 
     const handleOpenModal = (category: Category) => {
