@@ -1,7 +1,7 @@
-import {Category, Transaction} from "@/src/types";
+import {Category, PaymentMethod, Transaction} from "@/src/types";
 import {useEffect, useState} from "react";
 import {toInputDateValue} from "@/src/utils/dateUtils";
-import {MenuItem, TextField, Select, Button, Box, Typography} from "@mui/material";
+import {MenuItem, TextField, Select, Button, Box, Typography, SelectChangeEvent} from "@mui/material";
 import formatCurrency from "@/src/utils/currencyUtils";
 import {GenericEditModal} from "@/src/components/GenericEditModal";
 import CategoryForm from "@/src/components/CategoryForm";
@@ -12,15 +12,17 @@ interface TransactionFormProps {
     onSave: (transaction: Transaction) => void;
     categories: Category[];
     onAddCategory: (newCategory: Category) => void;
+    paymentMethods: PaymentMethod[];
 }
 
-const TransactionForm: React.FC<TransactionFormProps> = ({ transaction, onSave, categories, onAddCategory }) => {
+const TransactionForm: React.FC<TransactionFormProps> = ({ transaction, onSave, categories, onAddCategory, paymentMethods }) => {
     const [isCategoryModalOpen, setIsCategoryModalOpen] = useState(false);
     const [editedTransaction, setEditedTransaction] = useState<Transaction>({
         ID: 0,
         Name: '',
         CategoryID: 1,
-        Type: '',
+        PaymentMethodID: 1,
+        Type: 'Expense',
         Amount: 0,
         PaymentDate: toInputDateValue(new Date().toISOString()),
     });
@@ -33,19 +35,28 @@ const TransactionForm: React.FC<TransactionFormProps> = ({ transaction, onSave, 
                 ID: 0,
                 Name: '',
                 CategoryID: categories.length > 0 ? categories[0].ID : 1,
-                Type: '',
+                PaymentMethodID: paymentMethods.length > 0 ? paymentMethods[0].ID : 1,
+                Type: 'Expense',
                 Amount: 0,
                 PaymentDate: toInputDateValue(new Date().toISOString()),
             });
         }
-    }, [transaction, categories]);
+    }, [transaction, categories, paymentMethods]);
 
-    const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        if (e.target.name === "CategoryID" && e.target.value === "new") {
+    const handleChange = (e: React.ChangeEvent<HTMLTextAreaElement | HTMLInputElement>) => {
+        const target = e.target as HTMLInputElement;
+        const name = target.name;
+        const value = target.value;
+
+        if (name === "CategoryID" && value === "new") {
             openNewCategoryModal();
             return;
-        } 
-        setEditedTransaction({ ...editedTransaction, [e.target.name]: e.target.value });
+        }
+
+        setEditedTransaction(prevState => ({
+            ...prevState,
+            [name]: value
+        }));
     };
 
     const handleSave = () => {
@@ -63,6 +74,18 @@ const TransactionForm: React.FC<TransactionFormProps> = ({ transaction, onSave, 
     const handleSaveNewCategory = async (newCategory: Category) => {
         onAddCategory(newCategory);
         setIsCategoryModalOpen(false);
+    };
+
+    const handleSelectChange = (event: SelectChangeEvent<string>) => {
+        const name = event.target.name;
+        const value = event.target.value;
+
+        if (name) {
+            setEditedTransaction(prevState => ({
+                ...prevState,
+                [name]: value
+            }));
+        }
     };
 
     return (
@@ -107,14 +130,17 @@ const TransactionForm: React.FC<TransactionFormProps> = ({ transaction, onSave, 
                     <MenuItem key={category.ID} value={category.ID}>{category.Name}</MenuItem>
                 ))}
             </Select>
-            <TextField
+            <Select
                 label={"Type"}
                 name={"Type"}
                 value={editedTransaction.Type}
-                onChange={handleChange}
+                onChange={handleSelectChange}
                 fullWidth
-                margin={"normal"}
-            />
+            >
+                <MenuItem value={"Expense"}>Expense</MenuItem>
+                <MenuItem value={"Income"}>Income</MenuItem>
+                <MenuItem value={"Transfer"}>Transfer</MenuItem>
+            </Select>
             <TextField
                 label={"Amount"}
                 name={"Amount"}
@@ -123,6 +149,19 @@ const TransactionForm: React.FC<TransactionFormProps> = ({ transaction, onSave, 
                 fullWidth
                 margin={"normal"}
             />
+            <Select
+                label={"Payment Method"}
+                name={"PaymentMethodID"}
+                value={editedTransaction.PaymentMethodID}
+                onChange={(e) => {
+                    setEditedTransaction({...editedTransaction, PaymentMethodID: Number(e.target.value)});
+                }}
+                fullWidth
+            >
+                {paymentMethods.map((paymentMethod) => (
+                    <MenuItem key={paymentMethod.ID} value={paymentMethod.ID}>{paymentMethod.Name}</MenuItem>
+                ))}
+            </Select>
             <TextField
                 label={"Payment Date"}
                 type={"date"}

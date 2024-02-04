@@ -1,7 +1,7 @@
 import React, {useEffect, useState} from 'react';
 import { Button } from "@mui/material";
 import API from '../services/api';
-import {Category, ColumnDefinition, Transaction} from '../types';
+import {Category, ColumnDefinition, PaymentMethod, Transaction} from '../types';
 import {formatDate, toISODateString} from "@/src/utils/dateUtils";
 import DeleteConfirmationDialog from "@/src/components/DeleteConfirmationDialog";
 import {GenericList} from "@/src/components/GenericList";
@@ -14,6 +14,7 @@ const Transactions: React.FC = () => {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [editingTransaction, setEditingTransaction] = useState<Transaction | null>(null);
     const [categories, setCategories] = useState<Category[]>([]);
+    const [paymentMethods, setPaymentMethods] = useState<PaymentMethod[]>([]);
     const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
     const [deleteTransactionId, setDeleteTransactionId] = useState<number | null>(null);
 
@@ -22,6 +23,7 @@ const Transactions: React.FC = () => {
         { title: 'Category', field: 'Category', render: (transaction) => getCategoryNameById(transaction.CategoryID) },
         { title: 'Type', field: 'Type', sortable: true, render: (transaction) => transaction.Type },
         { title: 'Amount (R$)', field: 'Amount', render: (transaction) => formatCurrency(transaction.Amount) },
+        { title: 'Payment Method', field: 'PaymentMethod', render:(transaction) => getPaymentMethodNameById(transaction.PaymentMethodID) },
         { title: 'Date', field: 'PaymentDate', sortable: true, render: (transaction) => formatDate(transaction.PaymentDate) },
     ];
 
@@ -34,6 +36,16 @@ const Transactions: React.FC = () => {
                 console.error('Error fetching categories:', error);
             }
         };
+
+        const fetchPaymentMethods = async ()=> {
+            try {
+                const response = await API.get<PaymentMethod[]>('/paymentMethods');
+                setPaymentMethods(response.data);
+            } catch (error) {
+                console.error('Error fetching payment methods:', error);
+            }
+        };
+
         const fetchTransactions = async () => {
             try {
                 const response = await API.get<Transaction[]>('/transactions');
@@ -47,6 +59,7 @@ const Transactions: React.FC = () => {
         };
 
         fetchCategories();
+        fetchPaymentMethods();
         fetchTransactions();
     }, []);
     const handleOpenModal = (transaction: Transaction) => {
@@ -93,6 +106,10 @@ const Transactions: React.FC = () => {
         const category = categories.find(cat => cat.ID === categoryId);
         return category ? category.Name : 'Unknown';
     };
+    const getPaymentMethodNameById = (paymentMethodID: number) => {
+        const paymentMethod = paymentMethods.find(met => met.ID === paymentMethodID);
+        return paymentMethod ? paymentMethod.Name : 'Unknown';
+    }
     const handleDeleteTransaction = (transactionID: number) => {
         API.delete(`/transactions/${transactionID}`)
             .then(() => {
@@ -136,7 +153,7 @@ const Transactions: React.FC = () => {
                 onDelete={(transactionId) => openDeleteDialog(transactionId)}
             />
             <GenericEditModal open={isModalOpen} onClose={handleCloseModal}>
-                <TransactionForm transaction={editingTransaction} onSave={handleSaveTransaction} categories={categories} onAddCategory={handleAddCategory} />
+                <TransactionForm transaction={editingTransaction} onSave={handleSaveTransaction} categories={categories} onAddCategory={handleAddCategory} paymentMethods={paymentMethods} />
             </GenericEditModal>
             <DeleteConfirmationDialog
                 open={isDeleteDialogOpen}
