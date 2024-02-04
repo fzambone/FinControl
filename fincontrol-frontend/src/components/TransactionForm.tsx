@@ -124,6 +124,7 @@ const TransactionForm: React.FC<TransactionFormProps> = ({ transaction, onSave, 
                     }
                 }}
                 fullWidth
+                sx={{ mb: 1}}
             >
                 <MenuItem value={"new"}>-- Add New Category --</MenuItem>
                 {categories.map((category) => (
