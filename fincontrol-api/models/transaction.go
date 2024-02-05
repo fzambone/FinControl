@@ -16,6 +16,8 @@ type Transaction struct {
 	Description     string
 	Type            string
 	PaymentDate     time.Time
+	ReferenceDate   string
+	NeedsReview     bool
 }
 
 type TransactionResponse struct {
@@ -27,6 +29,8 @@ type TransactionResponse struct {
 	Description     string    `json:"Description"`
 	Type            string    `json:"Type"`
 	PaymentDate     time.Time `json:"PaymentDate"`
+	ReferenceDate   string    `json:"ReferenceDate"`
+	NeedsReview     bool      `json:"NeedsReview"`
 }
 
 func ToTransactionResponse(t Transaction) TransactionResponse {
@@ -39,5 +43,7 @@ func ToTransactionResponse(t Transaction) TransactionResponse {
 		Description:     t.Description,
 		Type:            t.Type,
 		PaymentDate:     t.PaymentDate,
+		ReferenceDate:   t.ReferenceDate,
+		NeedsReview:     t.NeedsReview,
 	}
 }

@@ -19,8 +19,9 @@ func (c *FileUploadController) UploadFile(ctx *fiber.Ctx) error {
 		return ctx.Status(fiber.StatusBadRequest).SendString(err.Error())
 	}
 	templateId := ctx.FormValue("templateId")
+	referenceDate := ctx.FormValue("referenceDate")
 
-	err = c.service.ProcessFileUpload(file, templateId)
+	err = c.service.ProcessFileUpload(file, templateId, referenceDate)
 	if err != nil {
 		return ctx.Status(fiber.StatusInternalServerError).SendString(err.Error())
 	}

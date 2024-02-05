@@ -1,6 +1,7 @@
 package services
 
 import (
+	"errors"
 	"github.com/fzambone/FinControl/fincontrol-api/models"
 	"github.com/fzambone/FinControl/fincontrol-api/repositories"
 	"github.com/fzambone/FinControl/fincontrol-api/utils"
@@ -20,7 +21,12 @@ func NewFileUploadService(repo repositories.TransactionRepository, parser utils.
 	}
 }
 
-func (s *FileUploadService) ProcessFileUpload(file *multipart.FileHeader, templateId string) error {
+// TODO: Verify duplicates
+func (s *FileUploadService) ProcessFileUpload(file *multipart.FileHeader, templateId string, referenceDate string) error {
+	if referenceDate == "" {
+		return errors.New("referenceDate cannot be empty")
+	}
+
 	transactions, err := s.parser.ParseItauCCFile(file, templateId)
 	if err != nil {
 		return err
@@ -47,6 +53,8 @@ func (s *FileUploadService) ProcessFileUpload(file *multipart.FileHeader, templa
 			CategoryID:      999,
 			PaymentMethodID: paymentMethodID,
 			Description:     "Parsed from automatic file upload",
+			ReferenceDate:   referenceDate,
+			NeedsReview:     true,
 		}
 
 		err = s.transactionRepo.CreateTransaction(&dbTransaction)
