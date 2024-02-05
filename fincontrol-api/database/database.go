@@ -1,7 +1,6 @@
 package database
 
 import (
-	"errors"
 	"fmt"
 	"github.com/fzambone/FinControl/fincontrol-api/models"
 	"gorm.io/driver/mysql"
@@ -37,30 +36,6 @@ func getDSN() string {
 
 func SetupDatabase() {
 	tx := DB.Begin()
-
-	var defaultPaymentMethod models.PaymentMethod
-	if err := tx.First(&defaultPaymentMethod, 1).Error; err != nil {
-		if errors.Is(err, gorm.ErrRecordNotFound) {
-			defaultPaymentMethod = models.PaymentMethod{
-				Name: "Default",
-			}
-			if err := tx.Create(&defaultPaymentMethod).Error; err != nil {
-				tx.Rollback()
-				log.Fatalf("Failed to create default payment method: %v", err)
-				return
-			}
-		} else {
-			tx.Rollback()
-			log.Fatalf("Failed to check default payment method: %v", err)
-			return
-		}
-	}
-
-	if err := tx.Exec("UPDATE transactions SET payment_method_id = ? WHERE payment_method_id IS NULL", defaultPaymentMethod.ID).Error; err != nil {
-		tx.Rollback()
-		log.Fatalf("Failed to update transactions: %v", err)
-		return
-	}
 
 	if err := tx.AutoMigrate(&models.Category{}, &models.Transaction{}, &models.PaymentMethod{}); err != nil {
 		tx.Rollback()

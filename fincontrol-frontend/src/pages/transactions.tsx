@@ -8,6 +8,7 @@ import {GenericList} from "@/src/components/GenericList";
 import {GenericEditModal} from "@/src/components/GenericEditModal";
 import TransactionForm from "@/src/components/TransactionForm";
 import formatCurrency from "@/src/utils/currencyUtils";
+import {FileUploadForm} from "@/src/components/FileUploadForm";
 
 const Transactions: React.FC = () => {
     const [transactions, setTransactions] = useState<Transaction[]>([]);
@@ -17,6 +18,7 @@ const Transactions: React.FC = () => {
     const [paymentMethods, setPaymentMethods] = useState<PaymentMethod[]>([]);
     const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
     const [deleteTransactionId, setDeleteTransactionId] = useState<number | null>(null);
+    const [openUploadModal, setOpenUploadModal] = useState(false);
 
     const transactionColumns: ColumnDefinition<Transaction>[] = [
         { title: 'Name', field: 'Name', sortable: true, render: (transaction) => transaction.Name },
@@ -128,7 +130,6 @@ const Transactions: React.FC = () => {
     const closeDeleteDialog = () => {
         setIsDeleteDialogOpen(false);
     }
-
     const handleAddCategory = async (newCategory: Category) => {
         try {
             const { ID, ...categoryData } = newCategory;
@@ -138,10 +139,23 @@ const Transactions: React.FC = () => {
             console.error("Error saving new category:", error)
         }
     }
+    const handleFileUpload = (file: File) => {
+        console.log("File to upload:", file.name);
+        //TODO: Upload file API call
+        setOpenUploadModal(false);
+    };
 
     return (
         <>
             <div style={{display: 'flex', justifyContent: 'flex-end', margin: '10px'}}>
+                <Button
+                    variant={"contained"}
+                    color={"primary"}
+                    onClick={() => setOpenUploadModal(true)}
+                    sx={{ mr: 2 }}
+                >
+                    Upload Statement
+                </Button>
                 <Button onClick={() => handleOpenModalForNew()} variant="contained" color="primary">
                     Add New Transaction
                 </Button>
@@ -154,6 +168,9 @@ const Transactions: React.FC = () => {
             />
             <GenericEditModal open={isModalOpen} onClose={handleCloseModal}>
                 <TransactionForm transaction={editingTransaction} onSave={handleSaveTransaction} categories={categories} onAddCategory={handleAddCategory} paymentMethods={paymentMethods} />
+            </GenericEditModal>
+            <GenericEditModal open={openUploadModal} onClose={() => setOpenUploadModal(false)}>
+                <FileUploadForm onFileUpload={handleFileUpload} />
             </GenericEditModal>
             <DeleteConfirmationDialog
                 open={isDeleteDialogOpen}

@@ -5,6 +5,7 @@ import (
 	"github.com/fzambone/FinControl/fincontrol-api/database"
 	"github.com/fzambone/FinControl/fincontrol-api/repositories"
 	"github.com/fzambone/FinControl/fincontrol-api/services"
+	"github.com/fzambone/FinControl/fincontrol-api/utils"
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/cors"
 )
@@ -34,12 +35,16 @@ func main() {
 	transactionService := services.NewTransactionService(transactionRepo)
 	transactionController := controllers.NewTransactionController(transactionService)
 
-	setupRoutes(app, categoryController, transactionController, paymentMethodController)
+	parser := utils.NewExcelTransactionParser()
+	fileUploadService := services.NewFileUploadService(transactionRepo, parser)
+	fileUploadController := controllers.NewFileUploadController(fileUploadService)
+
+	setupRoutes(app, categoryController, transactionController, paymentMethodController, fileUploadController)
 
 	app.Listen(":8080")
 }
 
-func setupRoutes(app *fiber.App, categoryController *controllers.CategoryController, transactionController *controllers.TransactionController, paymentMethodController *controllers.PaymentMethodController) {
+func setupRoutes(app *fiber.App, categoryController *controllers.CategoryController, transactionController *controllers.TransactionController, paymentMethodController *controllers.PaymentMethodController, fileUploadController *controllers.FileUploadController) {
 	app.Post("/paymentMethods", paymentMethodController.CreatePaymentMethod)
 	app.Get("/paymentMethods", paymentMethodController.GetAllPaymentMethods)
 	app.Get("/paymentMethods/deleted", paymentMethodController.GetAllDeletedPaymentMethods)
@@ -63,4 +68,5 @@ func setupRoutes(app *fiber.App, categoryController *controllers.CategoryControl
 	app.Put("/transactions/:id", transactionController.UpdateTransaction)
 	app.Delete("/transactions/:id", transactionController.DeleteTransaction)
 	app.Patch("/transactions/:id/restore", transactionController.RestoreTransaction)
+	app.Post("/transactions/upload", fileUploadController.UploadFile)
 }
