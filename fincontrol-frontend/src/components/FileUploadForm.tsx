@@ -1,17 +1,24 @@
 import React, {useEffect, useState} from 'react';
 import {Box, Button, CircularProgress, MenuItem, Select, Typography} from "@mui/material";
-
+import { format } from 'date-fns';
+import ReactDatePicker from 'react-datepicker';
+import API from "@/src/services/api";
+import {Category} from "@/src/types";
+import axios from "axios";
 interface FileUploadFormProps {
-    onFileUpload: (file: File) => void;
+    // onFileUpload: (file: File) => void;
+    onClose: () => void;
+    onUploadSuccess: () => void;
 }
 
-export const FileUploadForm: React.FC<FileUploadFormProps> = ({ onFileUpload }) => {
+export const FileUploadForm: React.FC<FileUploadFormProps> = ({ onClose, onUploadSuccess }) => {
     const [selectedFile, setSelectedFile] = useState<File | null>(null);
     const [isUploading, setIsUploading] = useState(false);
     const [uploadSuccess, setUploadSuccess] = useState(false);
     const [uploadError, setUploadError] = useState("");
-    const [templates, setTemplates] = useState([{ id: '1', name: 'Template 1'}, { id: '2', name: 'Template 2' }]);
+    const [templates, setTemplates] = useState([{ id: '1', name: 'Catão de Crédito Visa Infinite Itaú'}, { id: '2', name: 'Template 2' }]);
     const [selectedTemplateId, setSelectedTemplateId] = useState('');
+    const [referenceDate, setReferenceDate] = useState(new Date());
 
     useEffect(() => {
         fetchTemplates();
@@ -19,8 +26,7 @@ export const FileUploadForm: React.FC<FileUploadFormProps> = ({ onFileUpload }) 
 
     const fetchTemplates = async () => {
         //TODO: Implement API call to fetch available upload templates
-        setTemplates([{ id: '1', name: 'Template 1'}, { id: '2', name: 'Template 2' }]);
-        // setSelectedTemplateId('1');
+        setTemplates([{ id: 'ItauCC', name: 'Catão de Crédito Visa Infinite Itaú'}, { id: '2', name: 'Template 2' }]);
     }
 
     const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -33,21 +39,44 @@ export const FileUploadForm: React.FC<FileUploadFormProps> = ({ onFileUpload }) 
     };
 
     const handleUpload = async () => {
-        if (selectedFile) {
+        if (selectedFile && isValidDate(referenceDate)) {
             setIsUploading(true);
             setUploadError("");
+            const formattedDate = format(referenceDate, 'MM/yyyy');
+
+            const formData = new FormData();
+            formData.append('file', selectedFile);
+            formData.append('templateId', selectedTemplateId);
+            formData.append('referenceDate', formattedDate);
+
             try {
-                const formData = new FormData();
-                formData.append('file', selectedFile);
-                formData.append('templateId', selectedTemplateId);
-                //TODO: Make API call
-                setUploadSuccess(true);
+                const response = await API.post('/transactions/upload', formData);
+
+                if (response.status === 200) {
+                    setUploadSuccess(true);
+                    onUploadSuccess();
+                } else {
+                    throw new Error('Upload failed due to server error');
+                }
             } catch (error) {
-                setUploadError("Failed to upload file. Please try again.");
+                if (axios.isAxiosError(error) && error.response) {
+                    setUploadError(error.response.data.message || "Failed to upload file. Please try again.");
+                } else {
+                    setUploadError("An unexpected error occurred.");
+                }
             } finally {
                 setIsUploading(false);
             }
+        } else {
+            setUploadError("Invalid Reference Date. Please ensure it's in MM/yyyy format.");
         }
+    };
+
+    const isValidDate = (date: Date | null) => {
+        if (!date) return false;
+
+        const regex = /^(0[1-9]|1[0-2])\/\d{4}$/;
+        return regex.test(format(date, 'MM/yyyy'));
     };
 
     return (
@@ -72,6 +101,14 @@ export const FileUploadForm: React.FC<FileUploadFormProps> = ({ onFileUpload }) 
                     </MenuItem>
                 ))}
             </Select>
+            <ReactDatePicker
+                selected={referenceDate}
+                onChange={(date: Date | null) => setReferenceDate(date || new Date())}
+                dateFormat={"MM/yyyy"}
+                showMonthYearPicker
+                showFullMonthYearPicker
+                placeholderText={"Select a month and year"}
+            />
             <Typography variant={"body2"} sx={{ mb: 2 }}>
                 Please select a .xlsx, .xls or .csv file containing your financial statement. Ensure the file is not larger than 5MB.
             </Typography>

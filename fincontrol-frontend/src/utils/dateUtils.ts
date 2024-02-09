@@ -16,7 +16,7 @@ export const toInputDateValue = (dateString: string): string => {
 };
 
 /**
- * Formats a data to an ISO string with a default time if the time is not present.
+ * Formats a date to an ISO string with a default time if the time is not present.
  * @param {string} dateString - The date string to format.
  * @returns {string} - The formatted date-time string.
  */
@@ -26,4 +26,12 @@ export const toISODateString = (dateString: string): string => {
     }
 
     return dateString;
+}
+
+export const formatDateToMMYYYY = (inputDate: Date | string): string => {
+    const date = new Date(inputDate);
+    const month = date.getMonth() + 1;
+    const year = date.getFullYear();
+
+    return `${month.toString().padStart(2, '0')}/${year}`;
 }

@@ -2,7 +2,7 @@ import React, {useEffect, useState} from 'react';
 import { Button } from "@mui/material";
 import API from '../services/api';
 import {Category, ColumnDefinition, PaymentMethod, Transaction} from '../types';
-import {formatDate, toISODateString} from "@/src/utils/dateUtils";
+import {toISODateString} from "@/src/utils/dateUtils";
 import DeleteConfirmationDialog from "@/src/components/DeleteConfirmationDialog";
 import {GenericList} from "@/src/components/GenericList";
 import {GenericEditModal} from "@/src/components/GenericEditModal";
@@ -24,10 +24,22 @@ const Transactions: React.FC = () => {
         { title: 'Name', field: 'Name', sortable: true, render: (transaction) => transaction.Name },
         { title: 'Category', field: 'Category', render: (transaction) => getCategoryNameById(transaction.CategoryID) },
         { title: 'Type', field: 'Type', sortable: true, render: (transaction) => transaction.Type },
-        { title: 'Amount (R$)', field: 'Amount', render: (transaction) => formatCurrency(transaction.Amount) },
+        { title: 'Amount (R$)', field: 'Amount', sortable: true, render: (transaction) => formatCurrency(transaction.Amount) },
         { title: 'Payment Method', field: 'PaymentMethod', render:(transaction) => getPaymentMethodNameById(transaction.PaymentMethodID) },
-        { title: 'Date', field: 'PaymentDate', sortable: true, render: (transaction) => formatDate(transaction.PaymentDate) },
+        { title: 'Date', field: 'ReferenceDate', sortable: true, render: (transaction) => transaction.ReferenceDate },
     ];
+
+    const fetchTransactions = async () => {
+        try {
+            const response = await API.get<Transaction[]>('/transactions');
+            const sortedTransactions = response.data.sort((a, b) => {
+                return new Date(b.PaymentDate).getTime() - new Date(a.PaymentDate).getTime();
+            })
+            setTransactions(sortedTransactions);
+        } catch (error) {
+            console.error('Error fetching transactions:', error);
+        }
+    };
 
     useEffect(() => {
         const fetchCategories = async () => {
@@ -45,18 +57,6 @@ const Transactions: React.FC = () => {
                 setPaymentMethods(response.data);
             } catch (error) {
                 console.error('Error fetching payment methods:', error);
-            }
-        };
-
-        const fetchTransactions = async () => {
-            try {
-                const response = await API.get<Transaction[]>('/transactions');
-                const sortedTransactions = response.data.sort((a, b) => {
-                    return new Date(b.PaymentDate).getTime() - new Date(a.PaymentDate).getTime();
-                })
-                setTransactions(sortedTransactions);
-            } catch (error) {
-                console.error('Error fetching transactions:', error);
             }
         };
 
@@ -139,10 +139,9 @@ const Transactions: React.FC = () => {
             console.error("Error saving new category:", error)
         }
     }
-    const handleFileUpload = (file: File) => {
-        console.log("File to upload:", file.name);
-        //TODO: Upload file API call
+    const handleFileUploadSuccess  = () => {
         setOpenUploadModal(false);
+        fetchTransactions();
     };
 
     return (
@@ -170,7 +169,7 @@ const Transactions: React.FC = () => {
                 <TransactionForm transaction={editingTransaction} onSave={handleSaveTransaction} categories={categories} onAddCategory={handleAddCategory} paymentMethods={paymentMethods} />
             </GenericEditModal>
             <GenericEditModal open={openUploadModal} onClose={() => setOpenUploadModal(false)}>
-                <FileUploadForm onFileUpload={handleFileUpload} />
+                <FileUploadForm onUploadSuccess={handleFileUploadSuccess} onClose={() => setOpenUploadModal(false)} />
             </GenericEditModal>
             <DeleteConfirmationDialog
                 open={isDeleteDialogOpen}

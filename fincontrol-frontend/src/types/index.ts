@@ -14,6 +14,7 @@ export interface Transaction {
     Type: string;
     Amount: number;
     PaymentDate: string;
+    ReferenceDate: string;
 }
 export interface ColumnDefinition<T> {
     title: string;

@@ -1,11 +1,10 @@
 import {Category, PaymentMethod, Transaction} from "@/src/types";
 import {useEffect, useState} from "react";
-import {toInputDateValue} from "@/src/utils/dateUtils";
+import {formatDateToMMYYYY, toInputDateValue} from "@/src/utils/dateUtils";
 import {MenuItem, TextField, Select, Button, Box, Typography, SelectChangeEvent} from "@mui/material";
-import formatCurrency from "@/src/utils/currencyUtils";
 import {GenericEditModal} from "@/src/components/GenericEditModal";
 import CategoryForm from "@/src/components/CategoryForm";
-import API from "@/src/services/api";
+import InputMask from 'react-input-mask';
 
 interface TransactionFormProps {
     transaction: Transaction | null;
@@ -25,6 +24,7 @@ const TransactionForm: React.FC<TransactionFormProps> = ({ transaction, onSave, 
         Type: 'Expense',
         Amount: 0,
         PaymentDate: toInputDateValue(new Date().toISOString()),
+        ReferenceDate: formatDateToMMYYYY(new Date().toISOString()),
     });
 
     useEffect(() => {
@@ -39,6 +39,7 @@ const TransactionForm: React.FC<TransactionFormProps> = ({ transaction, onSave, 
                 Type: 'Expense',
                 Amount: 0,
                 PaymentDate: toInputDateValue(new Date().toISOString()),
+                ReferenceDate: formatDateToMMYYYY(new Date().toISOString()),
             });
         }
     }, [transaction, categories, paymentMethods]);
@@ -163,6 +164,26 @@ const TransactionForm: React.FC<TransactionFormProps> = ({ transaction, onSave, 
                     <MenuItem key={paymentMethod.ID} value={paymentMethod.ID}>{paymentMethod.Name}</MenuItem>
                 ))}
             </Select>
+            <InputMask
+                mask={"99/9999"}
+                value={editedTransaction.ReferenceDate}
+                onChange={handleChange}
+                disabled={false}
+                maskChar={" "}
+            >
+                {((inputProps: any) => (
+                    <TextField
+                        {...inputProps}
+                        label={"Reference Date (MM/yyyy)"}
+                        name={"ReferenceDate"}
+                        fullWidth
+                        margin={"normal"}
+                        placeholder={"MM/yyyy"}
+                        InputLabelProps={{ shrink: true }}
+                    />
+                )) as unknown as React.ReactNode}
+
+            </InputMask>
             <TextField
                 label={"Payment Date"}
                 type={"date"}
