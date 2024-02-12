@@ -10,7 +10,7 @@ const Header: React.FC = () => {
                 <Typography variant="h6" sx={{ flexGrow: 1, color: 'white' }}>
                     FinControl
                 </Typography>
-                <Link href="/" passHref>
+                <Link href="/dashboard" passHref>
                     <Button color="inherit">Home</Button>
                 </Link>
                 <Link href="/transactions" passHref>
